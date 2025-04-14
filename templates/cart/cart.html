@@ -1,0 +1,152 @@
+<!-- templates/cart/cart.html -->
+{% extends 'base.html' %}
+
+{% block title %}Shopping Cart - Pet Connect{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Shopping Cart</h1>
+
+{% if cart_items %}
+    <div class="card mb-4">
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Total</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in cart_items %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <img src="{{ url_for('static', filename='images/' ~ ('pets' if item.type == 'pet' else 'products') ~ '/' ~ (item.BreedID|string if item.type == 'pet' else item.id|string) ~ '.png') }}" alt="{{ item.name }}" width="50" class="me-3">
+                                    <div>
+                                        <h6 class="mb-0">{{ item.name }}</h6>
+                                        {% if item.type == 'pet' %}
+                                            <small class="text-muted">{{ item.breed }}</small>
+                                        {% else %}
+                                            <small class="text-muted">{{ item.category }}</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>${{ item.price }}</td>
+                            <td>
+                                <div class="input-group input-group-sm" style="width: 120px;">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="updateQuantity({{ item.id }}, '{{ item.type }}', -1)">-</button>
+                                    <input type="number" class="form-control text-center" value="{{ item.quantity }}" min="1" max="10" id="quantity-{{ item.type }}-{{ item.id }}" onchange="updateQuantity({{ item.id }}, '{{ item.type }}', 0, this.value)">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="updateQuantity({{ item.id }}, '{{ item.type }}', 1)">+</button>
+                                </div>
+                            </td>
+                            <td>${{ item.total }}</td>
+                            <td>
+                                <button class="btn btn-outline-danger btn-sm" onclick="removeItem({{ item.id }}, '{{ item.type }}')">
+                                    <i class="bi bi-trash"></i> Remove
+                                </button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" class="text-end fw-bold">Subtotal:</td>
+                        <td colspan="2" class="fw-bold">${{ total }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+    
+    <div class="d-flex justify-content-between">
+        <a href="{{ url_for('product.list') }}" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left"></i> Continue Shopping
+        </a>
+        <a href="{{ url_for('cart.checkout') }}" class="btn btn-primary">
+            Proceed to Checkout <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+{% else %}
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-cart-x fs-1 text-muted"></i>
+            <h3 class="mt-3">Your cart is empty</h3>
+            <p class="text-muted">Looks like you haven't added anything to your cart yet.</p>
+            <a href="{{ url_for('product.list') }}" class="btn btn-primary mt-3">
+                <i class="bi bi-shop"></i> Start Shopping
+            </a>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function updateQuantity(itemId, itemType, change, newValue = null) {
+        const quantityInput = document.getElementById(`quantity-${itemType}-${itemId}`);
+        let quantity = parseInt(quantityInput.value);
+        
+        if (newValue !== null) {
+            quantity = parseInt(newValue);
+        } else {
+            quantity += change;
+        }
+        
+        // Ensure quantity is between 1 and 10
+        quantity = Math.max(1, Math.min(10, quantity));
+        quantityInput.value = quantity;
+        
+        // Update cart on server
+        fetch('/cart/update', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                id: itemId,
+                type: itemType,
+                quantity: quantity
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Reload the page to reflect changes
+                window.location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+    
+    function removeItem(itemId, itemType) {
+        if (confirm('Are you sure you want to remove this item from your cart?')) {
+            fetch('/cart/remove', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    id: itemId,
+                    type: itemType
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Reload the page to reflect changes
+                    window.location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    }
+</script>
+{% endblock %}

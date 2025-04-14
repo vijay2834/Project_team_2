@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Manage Pets</h1>
+
+<!-- List of all pets -->
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Age</th>
+            <th>Breed</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for pet in pets %}
+        <tr>
+            <td>{{ pet.name }}</td>
+            <td>{{ pet.age }}</td>
+            <td>{{ pet.breed }}</td>
+            <td>
+                <a href="{{ url_for('admin.edit_pet', pet_id=pet.id) }}">Edit</a>
+                <a href="{{ url_for('admin.delete_pet', pet_id=pet.id) }}">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Link to add new pet -->
+<a href="{{ url_for('admin.add_pet') }}">Add New Pet</a>
+{% endblock %}

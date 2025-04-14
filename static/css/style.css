@@ -1,0 +1,54 @@
+/* User Profile Styles */
+.avatar-circle {
+    width: 100px;
+    height: 100px;
+    background-color: #4CAF50;
+    border-radius: 50%;
+    color: white;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.initials {
+    font-size: 40px;
+    line-height: 1;
+    font-weight: bold;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 1.5rem;
+    margin-left: 1rem;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 2px;
+    background-color: #e9ecef;
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 1.5rem;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -1.5rem;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    top: 0.25rem;
+    border: 2px solid #fff;
+}
+
+.timeline-content {
+    padding-left: 0.5rem;
+}

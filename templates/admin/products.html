@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Manage Products</h1>
+
+<!-- List of all products -->
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Price</th>
+            <th>Description</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for product in products %}
+        <tr>
+            <td>{{ product.name }}</td>
+            <td>{{ product.price }}</td>
+            <td>{{ product.description }}</td>
+            <td>
+                <a href="{{ url_for('admin.edit_product', product_id=product.id) }}">Edit</a>
+                <a href="{{ url_for('admin.delete_product', product_id=product.id) }}">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Link to add new product -->
+<a href="{{ url_for('admin.add_product') }}">Add New Product</a>
+{% endblock %}

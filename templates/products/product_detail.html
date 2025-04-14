@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="product-detail">
+        <h2>{{ product.name }}</h2>
+        
+        {% if product.image %}
+        <img src="{{ url_for('static', filename='images/products/' + product.ProductID|string + '.png') }}" alt="{{ product.name }}" class="product-image">
+        {% else %}
+        <img src="{{ url_for('static', filename='images/products/product_placeholder.jpg') }}" alt="No image available" class="product-image">
+        
+        {% endif %}
+        
+        <p><strong>Price:</strong> ${{ product.price }}</p>
+        <p><strong>Description:</strong> {{ product.description }}</p>
+        
+        <div class="product-actions">
+            <form method="POST" action="{{ url_for('add_to_cart', product_id=product.id) }}">
+                <button type="submit" class="btn btn-primary">Add to Cart</button>
+            </form>
+            <a href="{{ url_for('cart') }}" class="btn btn-secondary">Go to Cart</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

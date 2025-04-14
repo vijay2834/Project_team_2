@@ -1,0 +1,92 @@
+<!-- templates/index.html -->
+{% extends 'base.html' %}
+
+{% block title %}Pet Connect - Home{% endblock %}
+
+{% block content %}
+<div class="row mb-5">
+    <div class="col-md-12">
+        <div id="homeCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                <div class="carousel-item active">
+                    <img src="{{ url_for('static', filename='images/banner1.jpg') }}" class="d-block w-100" alt="Pet Connect">
+                    <div class="carousel-caption d-none d-md-block">
+                        <h2>Welcome to Pet Connect</h2>
+                        <p>Your one-stop shop for pets and pet products</p>
+                        <a href="{{ url_for('pet.list') }}" class="btn btn-primary me-2">Browse Pets</a>
+                        <a href="{{ url_for('product.list') }}" class="btn btn-outline-light">Shop Products</a>
+                    </div>
+                </div>
+                <!-- Add more carousel items as needed -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="mb-5">
+    <h2 class="text-center mb-4">Featured Pets</h2>
+    <div class="row">
+        {% for pet in featured_pets %}
+        <div class="col-md-3 mb-4">
+            <div class="card h-100">
+                <img src="{{ url_for('static', filename='images/pets/' + pet.image) }}" class="card-img-top" alt="{{ pet.PetName }}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ pet.PetName }}</h5>
+                    <p class="card-text">{{ pet.BreedName }} - {{ pet.Age }} years old</p>
+                    <p class="card-text text-primary fw-bold">${{ pet.Price }}</p>
+                </div>
+                <div class="card-footer bg-white border-top-0">
+                    <a href="{{ url_for('pet.detail', pet_id=pet.PetID) }}" class="btn btn-outline-primary w-100">View Details</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="text-center mt-3">
+        <a href="{{ url_for('pet.list') }}" class="btn btn-primary">View All Pets</a>
+    </div>
+</section>
+
+<section class="mb-5">
+    <h2 class="text-center mb-4">Featured Products</h2>
+    <div class="row">
+        {% for product in featured_products %}
+        <div class="col-md-3 mb-4">
+            <div class="card h-100">
+                <img src="{{ url_for('static', filename='images/products/' + product.image) }}" class="card-img-top" alt="{{ product.ProductName }}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ product.ProductName }}</h5>
+                    <p class="card-text">{{ product.CategoryName }}</p>
+                    <p class="card-text text-primary fw-bold">${{ product.Price }}</p>
+                </div>
+                <div class="card-footer bg-white border-top-0">
+                    <a href="{{ url_for('product.detail', product_id=product.ProductID) }}" class="btn btn-outline-primary w-100">View Details</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="text-center mt-3">
+        <a href="{{ url_for('product.list') }}" class="btn btn-primary">View All Products</a>
+    </div>
+</section>
+
+<section class="bg-light p-5 rounded">
+    <div class="row">
+        <div class="col-md-6">
+            <h2>Why Choose Pet Connect?</h2>
+            <ul class="list-group list-group-flush bg-transparent">
+                <li class="list-group-item bg-transparent">Wide variety of pets and products</li>
+                <li class="list-group-item bg-transparent">Quality assurance on all purchases</li>
+                <li class="list-group-item bg-transparent">Easy shopping experience</li>
+                <li class="list-group-item bg-transparent">Reliable delivery options</li>
+            </ul>
+        </div>
+        <div class="col-md-6">
+            <h2>Our Commitment</h2>
+            <p>At Pet Connect, we're dedicated to bringing joy to pet owners and their furry companions. Our platform makes it easier for pet owners to shop by consolidating pet-related products in one location, guaranteeing quality and convenience in each transaction.</p>
+            <p>Whether you're looking for a new pet to welcome into your family or supplies for your current companions, we've got you covered.</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

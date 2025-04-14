@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+
+{% block title %}Checkout - Pet Connect{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Checkout</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Shipping Information</h5>
+            </div>
+            <div class="card-body">
+                <form id="checkout-form" method="POST" action="{{ url_for('cart.checkout') }}">
+                    
+                    {% if user_addresses %}
+                        <div class="mb-3">
+                            <label class="form-label">Select a saved address</label>
+                            {% for address in user_addresses %}
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="address_id" id="address-{{ address.AddressID }}" value="{{ address.AddressID }}" {% if address.CurrentYesOrNo %}checked{% endif %}>
+                                    <label class="form-check-label" for="address-{{ address.AddressID }}">
+                                        {{ address.Street1 }}, {% if address.Street2 %}{{ address.Street2 }}, {% endif %}
+                                        {{ address.City }}, {{ address.State }} {{ address.Zip }}
+                                    </label>
+                                </div>
+                            {% endfor %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="address_id" id="new-address" value="new">
+                                <label class="form-check-label" for="new-address">
+                                    Use a new address
+                                </label>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <div id="new-address-form" {% if user_addresses %}style="display: none;"{% endif %}>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="street1" class="form-label">Street Address</label>
+                                <input type="text" class="form-control" id="street1" name="street1" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="street2" class="form-label">Apartment, Suite, etc. (optional)</label>
+                                <input type="text" class="form-control" id="street2" name="street2">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-5 mb-3">
+                                <label for="city" class="form-label">City</label>
+                                <input type="text" class="form-control" id="city" name="city" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="state" class="form-label">State</label>
+                                <input type="text" class="form-control" id="state" name="state" required>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="zip" class="form-label">Zip Code</label>
+                                <input type="text" class="form-control" id="zip" name="zip" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="save_address" name="save_address" value="on">
+                            <label class="form-check-label" for="save_address">
+                                Save this address for future orders
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="card mt-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Payment Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Payment Method</label>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="payment_method" id="credit-card" value="Credit Card" checked>
+                                    <label class="form-check-label" for="credit-card">
+                                        Credit Card
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="payment_method" id="debit-card" value="Debit Card">
+                                    <label class="form-check-label" for="debit-card">
+                                        Debit Card
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="payment_method" id="paypal" value="Paypal">
+                                    <label class="form-check-label" for="paypal">
+                                        PayPal
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="payment_method" id="apple-pay" value="Apple pay">
+                                    <label class="form-check-label" for="apple-pay">
+                                        Apple Pay
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div id="card-details">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="card_number" class="form-label">Card Number</label>
+                                        <input type="text" class="form-control" id="card_number" name="card_number" placeholder="1234 5678 9012 3456">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="card_name" class="form-label">Name on Card</label>
+                                        <input type="text" class="form-control" id="card_name" name="card_name">
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="card_expiry" class="form-label">Expiration Date</label>
+                                        <input type="text" class="form-control" id="card_expiry" name="card_expiry" placeholder="MM/YY">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="card_cvv" class="form-label">CVV</label>
+                                        <input type="text" class="form-control" id="card_cvv" name="card_cvv" placeholder="123">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <input type="hidden" name="total_amount" value="{{ total }}">
+                    
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">Place Order</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Order Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6>Items ({{ cart_items|length }})</h6>
+                    <ul class="list-group list-group-flush">
+                        {% for item in cart_items %}
+                            <li class="list-group-item d-flex justify-content-between align-items-start px-0">
+                                <div>
+                                    <div class="fw-bold">{{ item.name }}</div>
+                                    <small class="text-muted">Qty: {{ item.quantity }}</small>
+                                </div>
+                                <span>${{ item.total }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                
+                <hr>
+                
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Subtotal:</span>
+                    <span>${{ total }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Shipping:</span>
+                    <span>Free</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Tax:</span>
+                    <span>${{ tax_amount }}</span>
+                </div>
+                
+                <hr>
+                
+                <div class="d-flex justify-content-between fw-bold">
+                    <span>Total:</span>
+                    <span>${{ grand_total }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Toggle display of new address form based on radio button selection
+    const addressRadios = document.querySelectorAll('input[name="address_id"]');
+    const newAddressForm = document.getElementById('new-address-form');
+    
+    if (addressRadios.length > 0 && newAddressForm) {
+        addressRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'new') {
+                    newAddressForm.style.display = 'block';
+                } else {
+                    newAddressForm.style.display = 'none';
+                }
+            });
+        });
+    }
+    
+    // Toggle display of card details based on payment method
+    const paymentMethodRadios = document.querySelectorAll('input[name="payment_method"]');
+    const cardDetails = document.getElementById('card-details');
+    
+    if (paymentMethodRadios.length > 0 && cardDetails) {
+        paymentMethodRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'Credit Card' || this.value === 'Debit Card') {
+                    cardDetails.style.display = 'block';
+                } else {
+                    cardDetails.style.display = 'none';
+                }
+            });
+        });
+    }
+</script>
+{% endblock %}

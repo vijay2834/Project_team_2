@@ -1,0 +1,145 @@
+<!-- templates/products/product_list.html -->
+{% extends 'base.html' %}
+
+{% block title %}Products - Pet Connect{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Shop Pet Products</h1>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Filter Products</h5>
+            </div>
+            <div class="card-body">
+                <form method="GET" action="{{ url_for('product.list') }}">
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Category</label>
+                        <select class="form-select" id="category" name="category_id">
+                            <option value="">All Categories</option>
+                            {% for category in categories %}
+                                <option value="{{ category.CategoryID }}" {% if request.args.get('category_id')|int == category.CategoryID %}selected{% endif %}>
+                                    {{ category.CategoryName }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="min_price" class="form-label">Min Price</label>
+                        <input type="number" class="form-control" id="min_price" name="min_price" min="0" step="0.01" value="{{ request.args.get('min_price', '') }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="max_price" class="form-label">Max Price</label>
+                        <input type="number" class="form-control" id="max_price" name="max_price" min="0" step="0.01" value="{{ request.args.get('max_price', '') }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="sort" class="form-label">Sort By</label>
+                        <select class="form-select" id="sort" name="sort">
+                            <option value="name_asc" {% if request.args.get('sort') == 'name_asc' %}selected{% endif %}>Name (A-Z)</option>
+                            <option value="name_desc" {% if request.args.get('sort') == 'name_desc' %}selected{% endif %}>Name (Z-A)</option>
+                            <option value="price_asc" {% if request.args.get('sort') == 'price_asc' %}selected{% endif %}>Price (Low-High)</option>
+                            <option value="price_desc" {% if request.args.get('sort') == 'price_desc' %}selected{% endif %}>Price (High-Low)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Apply Filters</button>
+                        <a href="{{ url_for('product.list') }}" class="btn btn-outline-secondary">Clear Filters</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-9">
+        <div class="row">
+            {% if products %}
+                {% for product in products %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                            <img src="{{ url_for('static', filename='images/products/' + product.ProductID|string + '.png') }}" class="card-img-top" alt="{{ product.ProductName }}">
+                            
+                            <div class="card-body">
+                                <h5 class="card-title">{{ product.ProductName }}</h5>
+                                <p class="card-text"><small class="text-muted">{{ product.CategoryName }}</small></p>
+                                <p class="card-text">{{ product.Description|truncate(100) }}</p>
+                                <p class="card-text text-primary fw-bold">${{ product.Price }}</p>
+                            </div>
+                            <div class="card-footer bg-white border-top-0 d-flex justify-content-between">
+                                <a href="{{ url_for('product.detail', product_id=product.ProductID) }}" class="btn btn-outline-primary">View</a>
+                                <button class="btn btn-primary" onclick="addToCart({{ product.ProductID }}, 'product')">
+                                    <i class="bi bi-cart-plus"></i> Add
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        No products found matching your criteria. Please try different filters.
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function addToCart(productId, itemType) {
+        fetch('/cart/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                id: productId,
+                type: itemType,
+                quantity: 1
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                const toast = document.createElement('div');
+                toast.className = 'position-fixed bottom-0 end-0 p-3';
+                toast.style.zIndex = '11';
+                toast.innerHTML = `
+                    <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="toast-header bg-success text-white">
+                            <strong class="me-auto">Success</strong>
+                            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                        <div class="toast-body">
+                            Item added to cart successfully!
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(toast);
+                
+                // Auto-hide toast after 3 seconds
+                setTimeout(() => {
+                    toast.remove();
+                }, 3000);
+                
+                // Update cart count in navbar
+                const cartCount = document.querySelector('.cart-count');
+                if (cartCount) {
+                    cartCount.textContent = parseInt(cartCount.textContent || 0) + 1;
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+</script>
+{% endblock %}

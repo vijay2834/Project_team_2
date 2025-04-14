@@ -1,0 +1,133 @@
+<!-- templates/pets/pet_detail.html -->
+{% extends 'base.html' %}
+
+{% block title %}{{ pet.PetName }} - Pet Connect{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Home</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('pet.list') }}">Pets</a></li>
+        <li class="breadcrumb-item active">{{ pet.PetName }}</li>
+    </ol>
+</nav>
+
+<div class="row">
+    <div class="col-md-6">
+        <img src="{{ url_for('static', filename='images/pets/' + pet.BreedID|string + '.png') }}" class="img-fluid rounded" alt="{{ pet.PetName }}">
+    </div>
+    
+    <div class="col-md-6">
+        <h1>{{ pet.PetName }}</h1>
+        <p class="fs-5 text-muted">{{ pet.BreedName }}</p>
+        
+        <div class="mb-4">
+            <p class="fs-2 text-primary fw-bold">${{ pet.Price }}</p>
+        </div>
+        
+        <div class="mb-4">
+            <h5>Details</h5>
+            <table class="table">
+                <tr>
+                    <th>Age:</th>
+                    <td>{{ pet.Age }} years</td>
+                </tr>
+                <tr>
+                    <th>Breed:</th>
+                    <td>{{ pet.BreedName }}</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="mb-4">
+            <h5>Description</h5>
+            <p>This beautiful {{ pet.BreedName }} is {{ pet.Age }} years old and is looking for a loving home. {{ pet.PetName }} is friendly, playful, and will make a wonderful addition to your family.</p>
+        </div>
+        
+        <div class="d-grid gap-2">
+            <button class="btn btn-primary" onclick="addToCart({{ pet.PetID }}, 'pet')">
+                <i class="bi bi-cart-plus"></i> Add to Cart
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-12">
+        <h3>Recommended Products for {{ pet.PetName }}</h3>
+        <div class="row">
+            {% for product in recommended_products %}
+                <div class="col-md-3 mb-4">
+                    <div class="card h-100">
+                        <img src="{{ url_for('static', filename='images/products/' + product.ProductID|string + '.png') }}" class="card-img-top" alt="{{ product.ProductName }}">    
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.ProductName }}</h5>
+                            <p class="card-text"><small class="text-muted">{{ product.CategoryName }}</small></p>
+                            <p class="card-text text-primary fw-bold">${{ product.Price }}</p>
+                        </div>
+                        <div class="card-footer bg-white border-top-0">
+                            <a href="{{ url_for('product.detail', product_id=product.ProductID) }}" class="btn btn-sm btn-outline-primary">View</a>
+                            <button class="btn btn-sm btn-primary" onclick="addToCart({{ product.ProductID }}, 'product')">
+                                Add to Cart
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function addToCart(itemId, itemType) {
+        fetch('/cart/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                id: itemId,
+                type: itemType,
+                quantity: 1
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                const toast = document.createElement('div');
+                toast.className = 'position-fixed bottom-0 end-0 p-3';
+                toast.style.zIndex = '11';
+                toast.innerHTML = `
+                    <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="toast-header bg-success text-white">
+                            <strong class="me-auto">Success</strong>
+                            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                        <div class="toast-body">
+                            Item added to cart successfully!
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(toast);
+                
+                // Auto-hide toast after 3 seconds
+                setTimeout(() => {
+                    toast.remove();
+                }, 3000);
+                
+                // Update cart count in navbar
+                const cartCount = document.querySelector('.cart-count');
+                if (cartCount) {
+                    cartCount.textContent = parseInt(cartCount.textContent || 0) + 1;
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+
+{% block title %}My Addresses - Pet Connect{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">My Account</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="avatar-circle">
+                        <span class="initials">{{ session.user_name[0] }}{{ session.user_name.split()[1][0] }}</span>
+                    </div>
+                    <h4 class="mt-3">{{ session.user_name }}</h4>
+                    <p class="text-muted">{{ 'Admin' if session.role_id == 1 else 'Customer' }}</p>
+                </div>
+                
+                <div class="list-group mb-4">
+                    <a href="{{ url_for('user.profile') }}" class="list-group-item list-group-item-action">
+                        <i class="bi bi-person-circle"></i> My Profile
+                    </a>
+                    <a href="{{ url_for('user.addresses') }}" class="list-group-item list-group-item-action active">
+                        <i class="bi bi-geo-alt"></i> My Addresses
+                    </a>
+                    <a href="{{ url_for('user.orders') }}" class="list-group-item list-group-item-action">
+                        <i class="bi bi-bag"></i> My Orders
+                    </a>
+                    <a href="{{ url_for('auth.logout') }}" class="list-group-item list-group-item-action text-danger">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">My Addresses</h5>
+                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addAddressModal">
+                    <i class="bi bi-plus-circle"></i> Add New Address
+                </button>
+            </div>
+            <div class="card-body p-0">
+                {% if addresses %}
+                    <div class="list-group list-group-flush">
+                        {% for address in addresses %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        {% if address.CurrentYesOrNo %}
+                                            <span class="badge bg-primary mb-2">Default</span>
+                                        {% endif %}
+                                        <p class="mb-1">{{ address.Street1 }}</p>
+                                        {% if address.Street2 %}<p class="mb-1">{{ address.Street2 }}</p>{% endif %}
+                                        <p class="mb-0">{{ address.City }}, {{ address.State }} {{ address.Zip }}</p>
+                                    </div>
+                                    <div class="d-flex">
+                                        {% if not address.CurrentYesOrNo %}
+                                            <form action="{{ url_for('user.set_default_address', address_id=address.AddressID) }}" method="post" class="me-2">
+                                                <button type="submit" class="btn btn-outline-primary btn-sm">
+                                                    Set as Default
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                        <form action="{{ url_for('user.delete_address', address_id=address.AddressID) }}" method="post">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Are you sure you want to delete this address?')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="p-4 text-center">
+                        <p class="mb-3">You haven't added any addresses yet.</p>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAddressModal">
+                            Add Your First Address
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Address Modal -->
+<div class="modal fade" id="addAddressModal" tabindex="-1" aria-labelledby="addAddressModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addAddressModalLabel">Add New Address</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('user.add_address') }}" method="post">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="street1" class="form-label">Street Address</label>
+                        <input type="text" class="form-control" id="street1" name="street1" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="street2" class="form-label">Apartment, Suite, etc. (optional)</label>
+                        <input type="text" class="form-control" id="street2" name="street2">
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="city" class="form-label">City</label>
+                            <input type="text" class="form-control" id="city" name="city" required>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="state" class="form-label">State</label>
+                            <input type="text" class="form-control" id="state" name="state" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="zip" class="form-label">ZIP Code</label>
+                        <input type="text" class="form-control" id="zip" name="zip" required>
+                    </div>
+                    
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="is_default" name="is_default">
+                        <label class="form-check-label" for="is_default">
+                            Set as default address
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Address</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .avatar-circle {
+        width: 100px;
+        height: 100px;
+        background-color: #4CAF50;
+        border-radius: 50%;
+        color: white;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+    }
+    
+    .initials {
+        font-size: 40px;
+        line-height: 1;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
