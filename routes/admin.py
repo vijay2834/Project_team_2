@@ -1,6 +1,6 @@
 # routes/admin.py
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from routes import execute_query, fetch_all, fetch_one
+from routes import execute_query, fetch_all, fetch_one, verify_password
 import datetime
 
 admin = Blueprint('admin', __name__, url_prefix='/admin')
@@ -40,7 +40,7 @@ def login():
             """
             admin_user = fetch_one(query, (email,))
             
-            if admin_user and admin_user['Password'] == password:
+            if admin_user and verify_password(admin_user['Password'], password):
                 # Set session data
                 session['logged_in'] = True
                 session['user_id'] = admin_user['UserID']

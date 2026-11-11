@@ -6,8 +6,8 @@ import json
 
 cart = Blueprint('cart', __name__, url_prefix='/cart')
 
-@cart.route('/')
-def view():
+def build_cart():
+    """Resolve session cart entries against the DB. Returns (cart_items, subtotal)."""
     cart_items = []
     total = 0
     
@@ -87,7 +87,14 @@ def view():
                         })
         except Exception as e:
             flash(f'Error loading cart: {str(e)}', 'danger')
+
+    return cart_items, float(total)
     
+
+
+@cart.route('/')
+def view():
+    cart_items, total = build_cart()
     return render_template('cart/cart.html', cart_items=cart_items, total=total)
 
 @cart.route('/add', methods=['POST'])
@@ -216,9 +223,8 @@ def checkout():
     total = 0
     
     try:
-        # ... [same as view() method to retrieve cart items] ...
-        # Process cart items (same code as in view method)
-        
+        cart_items, total = build_cart()
+
         # Add taxes and calculate grand total
         tax_rate = 0.08  # 8% tax
         tax_amount = round(total * tax_rate, 2)

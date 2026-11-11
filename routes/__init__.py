@@ -74,3 +74,28 @@ def fetch_all(query, params=None):
         raise
     finally:
         cursor.close()
+
+# ---------------------------------------------------------------------------
+# Password helpers
+# ---------------------------------------------------------------------------
+from werkzeug.security import generate_password_hash, check_password_hash
+
+_HASH_PREFIXES = ('pbkdf2:', 'scrypt:')
+
+
+def hash_password(password):
+    """Return a salted hash suitable for storing in USER.Password."""
+    return generate_password_hash(password)
+
+
+def verify_password(stored, candidate):
+    """Check a password against the stored value.
+
+    New accounts store salted hashes. The seed data in schema.sql still holds
+    plain-text demo passwords, so fall back to a direct comparison for those.
+    """
+    if not stored:
+        return False
+    if stored.startswith(_HASH_PREFIXES):
+        return check_password_hash(stored, candidate)
+    return stored == candidate

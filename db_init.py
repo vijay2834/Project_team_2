@@ -1,13 +1,27 @@
-import mysql.connector
-from getpass import getpass
+"""Create the PetConnect database, load schema + seed data, and write a .env file.
+
+Usage:
+    python db_init.py              # interactive prompts
+    python db_init.py --from-env   # non-interactive, reads MYSQL_* env vars (CI / Docker)
+"""
 import os
+import sys
+from getpass import getpass
+
+import mysql.connector
 
 def initialize_database():
     # Get database connection details
-    host = input("Enter MySQL host (default: localhost): ") or "127.0.0.1"
-    user = input("Enter MySQL username (default: root): ") or "root"
-    password = getpass("Enter MySQL password: ") or "Venkat2834.p"
-    db_name = input("Enter database name (default: pet_connect): ") or "pet_connect"
+    if "--from-env" in sys.argv:
+        host = os.getenv("MYSQL_HOST", "127.0.0.1")
+        user = os.getenv("MYSQL_USER", "root")
+        password = os.getenv("MYSQL_PASSWORD", "")
+        db_name = os.getenv("MYSQL_DB", "pet_connect")
+    else:
+        host = input("Enter MySQL host (default: 127.0.0.1): ") or "127.0.0.1"
+        user = input("Enter MySQL username (default: root): ") or "root"
+        password = getpass("Enter MySQL password: ")
+        db_name = input("Enter database name (default: pet_connect): ") or "pet_connect"
     
     try:
         # Connect to MySQL (without database)

@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash, session
 import datetime
 import re
-from routes import execute_query, fetch_one
+from routes import execute_query, fetch_one, verify_password, hash_password
 
 auth = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -70,7 +70,7 @@ def login():
             user = fetch_one(query, (email,))
             
             # Check if user exists and password is correct
-            if user and user['Password'] == password:
+            if user and verify_password(user['Password'], password):
                 # Set session variables
                 session['logged_in'] = True
                 session['user_id'] = user['UserID']
@@ -174,14 +174,14 @@ def register():
                                       last_name=last_name,
                                       phone=phone)
             
-            # Insert new user into database with plain text password
+            # Insert new user with a salted password hash
             now = datetime.datetime.now()
             insert_query = """
             INSERT INTO USER (RoleID, FirstName, LastName, Email, Phone, Password, CreatedDateTime) 
             VALUES (%s, %s, %s, %s, %s, %s, %s)
             """
             
-            user_id = execute_query(insert_query, (2, first_name, last_name, email, phone, password, now))
+            user_id = execute_query(insert_query, (2, first_name, last_name, email, phone, hash_password(password), now))
             
             # Set session variables to automatically login
             session['logged_in'] = True

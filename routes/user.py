@@ -1,6 +1,6 @@
 # routes/user.py
 from flask import Blueprint, render_template, redirect, url_for, request, flash, session
-from routes import execute_query, fetch_all, fetch_one
+from routes import execute_query, fetch_all, fetch_one, verify_password, hash_password
 import datetime
 
 user = Blueprint('user', __name__, url_prefix='/user')
@@ -92,7 +92,7 @@ def change_password():
             return redirect(url_for('user.profile'))
         
         # Check current password
-        if user['Password'] != current_password:
+        if not verify_password(user['Password'], current_password):
             flash('Current password is incorrect', 'danger')
             return redirect(url_for('user.profile'))
         
@@ -102,7 +102,7 @@ def change_password():
         SET Password = %s 
         WHERE UserID = %s
         """
-        execute_query(update_query, (new_password, session['user_id']))
+        execute_query(update_query, (hash_password(new_password), session['user_id']))
         
         flash('Password updated successfully', 'success')
     except Exception as e:

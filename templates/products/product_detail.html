@@ -1,26 +1,128 @@
-{% extends "base.html" %}
+<!-- templates/products/product_detail.html -->
+{% extends 'base.html' %}
+
+{% block title %}{{ product.ProductName }} - Pet Connect{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="product-detail">
-        <h2>{{ product.name }}</h2>
-        
-        {% if product.image %}
-        <img src="{{ url_for('static', filename='images/products/' + product.ProductID|string + '.png') }}" alt="{{ product.name }}" class="product-image">
-        {% else %}
-        <img src="{{ url_for('static', filename='images/products/product_placeholder.jpg') }}" alt="No image available" class="product-image">
-        
-        {% endif %}
-        
-        <p><strong>Price:</strong> ${{ product.price }}</p>
-        <p><strong>Description:</strong> {{ product.description }}</p>
-        
-        <div class="product-actions">
-            <form method="POST" action="{{ url_for('add_to_cart', product_id=product.id) }}">
-                <button type="submit" class="btn btn-primary">Add to Cart</button>
-            </form>
-            <a href="{{ url_for('cart') }}" class="btn btn-secondary">Go to Cart</a>
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Home</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('product.list') }}">Products</a></li>
+        <li class="breadcrumb-item active">{{ product.ProductName }}</li>
+    </ol>
+</nav>
+
+<div class="row">
+    <div class="col-md-6">
+        <img src="{{ url_for('static', filename='images/products/' + product.ProductID|string + '.png') }}"
+             onerror="this.src='{{ url_for('static', filename='images/pets/pet_placeholder.jpg') }}'"
+             class="img-fluid rounded" alt="{{ product.ProductName }}">
+    </div>
+
+    <div class="col-md-6">
+        <h1>{{ product.ProductName }}</h1>
+        <p class="fs-5 text-muted">{{ product.CategoryName }}</p>
+
+        <div class="mb-4">
+            <p class="fs-2 text-primary fw-bold">${{ product.Price }}</p>
+            {% if product.Stock and product.Stock > 0 %}
+                <span class="badge bg-success">In stock ({{ product.Stock }})</span>
+            {% else %}
+                <span class="badge bg-secondary">Out of stock</span>
+            {% endif %}
+        </div>
+
+        <div class="mb-4">
+            <h5>Description</h5>
+            <p>{{ product.Description or 'No description available.' }}</p>
+        </div>
+
+        <div class="d-grid gap-2">
+            <button class="btn btn-primary" onclick="addToCart({{ product.ProductID }}, 'product')"
+                    {% if not product.Stock or product.Stock <= 0 %}disabled{% endif %}>
+                <i class="bi bi-cart-plus"></i> Add to Cart
+            </button>
+            <a href="{{ url_for('cart.view') }}" class="btn btn-outline-secondary">Go to Cart</a>
         </div>
     </div>
 </div>
+
+{% if similar_products %}
+<div class="row mt-5">
+    <div class="col-12">
+        <h3>Similar Products</h3>
+        <div class="row">
+            {% for item in similar_products %}
+                <div class="col-md-3 mb-4">
+                    <div class="card h-100">
+                        <img src="{{ url_for('static', filename='images/products/' + item.ProductID|string + '.png') }}" class="card-img-top" alt="{{ item.ProductName }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ item.ProductName }}</h5>
+                            <p class="card-text"><small class="text-muted">{{ item.CategoryName }}</small></p>
+                            <p class="card-text text-primary fw-bold">${{ item.Price }}</p>
+                        </div>
+                        <div class="card-footer bg-white border-top-0">
+                            <a href="{{ url_for('product.detail', product_id=item.ProductID) }}" class="btn btn-sm btn-outline-primary">View</a>
+                            <button class="btn btn-sm btn-primary" onclick="addToCart({{ item.ProductID }}, 'product')">Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function addToCart(itemId, itemType) {
+        fetch('/cart/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                id: itemId,
+                type: itemType,
+                quantity: 1
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                const toast = document.createElement('div');
+                toast.className = 'position-fixed bottom-0 end-0 p-3';
+                toast.style.zIndex = '11';
+                toast.innerHTML = `
+                    <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="toast-header bg-success text-white">
+                            <strong class="me-auto">Success</strong>
+                            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                        <div class="toast-body">
+                            Item added to cart successfully!
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(toast);
+                
+                // Auto-hide toast after 3 seconds
+                setTimeout(() => {
+                    toast.remove();
+                }, 3000);
+                
+                // Update cart count in navbar
+                const cartCount = document.querySelector('.cart-count');
+                if (cartCount) {
+                    cartCount.textContent = parseInt(cartCount.textContent || 0) + 1;
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+</script>
 {% endblock %}
